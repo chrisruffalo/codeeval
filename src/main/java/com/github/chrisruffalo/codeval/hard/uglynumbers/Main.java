@@ -98,40 +98,42 @@ public class Main {
 	
 	public long parse(String input) {
 		String reverse = (new StringBuilder(input)).reverse().toString();
-		return this.parse(0, reverse, "");
+		return this.parse(0, reverse);
 	}
 	
-	public long parse(int index, String input, String value) {
+	public long parse(int index, String input) {
 		if(input == null || input.isEmpty()) {
 			return 0;
 		}
 		
-		if(index >= input.length()) { 
-			if(value != null && !value.isEmpty()) {
-				return Long.parseLong(value);
+		String value = "";
+		int carryValue = 0;
+		while(index < input.length()) {
+			char current = input.charAt(index);
+			if('-' == current || '+' == current) {
+				// parse value
+				long parsedValue = Long.parseLong(value);
+				
+				index++;
+				value = "";
+				
+				// do maths
+				if('-' == current) {
+					parsedValue = (0 - parsedValue);
+				} 
+					
+				carryValue += parsedValue;
 			} else {
-				return 0;
-			}
-		}
-		
-		char current = input.charAt(index);
-		if('-' == current || '+' == current) {
-			// parse value
-			long parsedValue = Long.parseLong(value);
-			
-			// get recursive value
-			long recurseValue = this.parse(index + 1, input, "");
-			
-			// do maths
-			if('-' == current) {
-				return recurseValue - parsedValue;
-			} else {
-				return recurseValue + parsedValue;
+				value = current + value;
+				index++;
 			}			
-		} else {
-			value = current + value;
-			return this.parse(index + 1, input, value);
 		}
+
+		if(value != null && !value.isEmpty()) {
+			carryValue += Long.parseLong(value);
+		} 
+		
+		return carryValue;
 	}
 	
 	public int countUgly(String input) {
