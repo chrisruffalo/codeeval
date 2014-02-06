@@ -6,8 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class Main {
 
@@ -82,15 +85,17 @@ public class Main {
 		int sum = 0;
 		
 		// proliferate with "nothing" input
-		sum += this.proliferateAndCheck(index+1, input);
+		index++;
+		sum += this.proliferateAndCheck(input);
 		
 		// modify for + and -
-		String inputPlus = input.substring(0,index+1) + "+" + input.substring(index+1);
-		String inputMinus = input.substring(0, index+1) + "-" + input.substring(index+1);
+		String inputPlus = input.substring(0,index) + "+" + input.substring(index);
+		String inputMinus = input.substring(0, index) + "-" + input.substring(index);
 		
 		// proliferate with those inputs
-		sum += this.proliferateAndCheck(index+2, inputPlus);
-		sum += this.proliferateAndCheck(index+2, inputMinus);
+		index++;
+		sum += this.proliferateAndCheck(index, inputPlus);
+		sum += this.proliferateAndCheck(index, inputMinus);
 		
 		// return sum
 		return sum;
