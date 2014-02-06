@@ -68,13 +68,18 @@ public class Main {
 			return 0;
 		}
 
+		// this is a minor optimization that removes leading 
+		// zeroes and replaces them with a multiplier that
+		// accounts for the three probabilities at each 0
+		// removed, one for "nothing", one for "+" and 
+		// one for "-"
 		int multiplier = 1;
-		// remove leading zeroes
 		while(!input.isEmpty() && input.charAt(0) == '0') {
 			input = input.substring(1);
 			multiplier *= 3;
 		}
 		
+		// for some reason "0" is 1, i don't get it...
 		if(input == null || input.isEmpty()) {
 			return 1;
 		}		
