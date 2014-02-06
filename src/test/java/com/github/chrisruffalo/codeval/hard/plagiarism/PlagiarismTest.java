@@ -3,10 +3,9 @@ package com.github.chrisruffalo.codeval.hard.plagiarism;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 import org.junit.Test;
-
-import com.github.chrisruffalo.codeval.hard.plagiarism.Main;
 
 public class PlagiarismTest {
 
@@ -18,7 +17,11 @@ public class PlagiarismTest {
 		String path = filePointer.getAbsolutePath();
 		
 		Main plag = new Main();
-		plag.check(path);
+		List<Integer> results = plag.check(path);
+		
+		for(Integer i : results) {
+			System.out.println(i);
+		}
 	}
 	
 }

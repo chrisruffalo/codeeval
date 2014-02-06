@@ -6,11 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Queue;
 
 public class Main {
 
@@ -66,39 +64,73 @@ public class Main {
 	}
 	
 	public int proliferateAndCheck(String input) {
-		return this.proliferateAndCheck(0, input);
-	}
-	
-	public int proliferateAndCheck(int index, String input) {
-		// can't do anything at the end of the string
-		if(index >= input.length() - 1) {
-			// if there is some value, parse it
-			if(input != null && !input.isEmpty()) {
-				Long value = this.parse(input);
-				if(this.isUgly(value)) {
-					return 1;
-				}
-			}
+		if(input == null || input.isEmpty()) {
 			return 0;
+		}
+
+		int multiplier = 1;
+		// remove leading zeroes
+		while(!input.isEmpty() && input.charAt(0) == '0') {
+			input = input.substring(1);
+			multiplier *= 3;
+		}
+		
+		if(input == null || input.isEmpty()) {
+			return 1;
+		}		
+		
+		Queue<String> workingQueue = new LinkedList<>();
+		workingQueue.add(input);
+		
+		int max = input.length();
+		int index = max - 1;
+		while(index > 0) {
+			
+			int limit = workingQueue.size();
+			for(int i = 0; i < limit; i++) {
+				String item = workingQueue.poll();
+				if(item == null) {
+					break;
+				}
+								
+				// add item to back of queue
+				workingQueue.add(item);
+				
+				// calculate
+				int itemLength = item.length();
+				int offset = itemLength - index;				
+				
+				// create sub-parts
+				String part1 = item.substring(0, offset);
+				String part2 = item.substring(offset);
+				
+				// modify for + and -
+				String itemPlus = part1 + "+" + part2;
+				String itemMinus = part1 + "-" + part2;
+				
+				// and add to queue
+				workingQueue.add(itemPlus);
+				workingQueue.add(itemMinus);
+			}
+			
+			index--;
 		}
 		
 		int sum = 0;
+		while(!workingQueue.isEmpty()) {
+			String item = workingQueue.poll();
+			if(item == null) {
+				break;
+			}
+			if(item == null || item.isEmpty()) {
+				continue;
+			}
+			if(this.isUgly(this.parse(item))) {
+				sum++;
+			}
+		}
 		
-		// proliferate with "nothing" input
-		index++;
-		sum += this.proliferateAndCheck(input);
-		
-		// modify for + and -
-		String inputPlus = input.substring(0,index) + "+" + input.substring(index);
-		String inputMinus = input.substring(0, index) + "-" + input.substring(index);
-		
-		// proliferate with those inputs
-		index++;
-		sum += this.proliferateAndCheck(index, inputPlus);
-		sum += this.proliferateAndCheck(index, inputMinus);
-		
-		// return sum
-		return sum;
+		return sum * multiplier;
 	}
 	
 	public long parse(String input) {

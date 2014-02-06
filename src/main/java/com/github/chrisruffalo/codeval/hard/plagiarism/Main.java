@@ -83,7 +83,15 @@ public class Main {
 		String[] split = input.split(Main.INPUT_SPLIT);
 		split[0] = split[0].trim();
 		split[1] = split[1].trim();
-				
+
+		// remove whitespace
+		split[0] = split[0].replaceAll("\\s", "");
+		split[1] = split[1].replaceAll("\\s", "");
+		
+		// remove endlines
+		split[0] = split[0].replaceAll("\\n", "");
+		split[1] = split[1].replaceAll("\\n", "");
+		
 		return split;
 	}
 	
