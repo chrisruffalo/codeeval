@@ -8,11 +8,10 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 public class Main {
 
-	public List<String> processFile(String fileName) {
+	public List<Integer> processFile(String fileName) {
 		// open file
 		File file = new File(fileName);
 		if(file == null || !file.exists() || !file.isFile() || !file.canRead()) {
@@ -20,7 +19,7 @@ public class Main {
 		}
 		
 		// store result set
-		List<String> results = new LinkedList<>();
+		List<Integer> results = new LinkedList<>();
 		
 		try(
 			FileReader reader = new FileReader(file); 
@@ -28,8 +27,8 @@ public class Main {
 		) {
 			String line = bReader.readLine();
 			while(line != null) {
-				String result = this.processLine(line);
-				if(result != null && !result.isEmpty()) {
+				Integer result = this.processLine(line);
+				if(result != null) {
 					results.add(result);
 				}
 				line = bReader.readLine();
@@ -45,8 +44,8 @@ public class Main {
 		return results;
 	}
 	
-	public String processLine(String fullLine) {
-		return ""+this.countUgly(fullLine);
+	public int processLine(CharSequence fullLine) {
+		return this.countUgly(fullLine);
 	}
 	
 	public boolean isUgly(long check) {
@@ -63,88 +62,57 @@ public class Main {
 		return false;
 	}
 	
-	public int proliferateAndCheck(String input) {
-		if(input == null || input.isEmpty()) {
+	public StringBuilder tokenize(CharSequence input) {
+		StringBuilder output = new StringBuilder();
+		
+		for(int index = 0; index < input.length(); index++) {
+			output.append(input.charAt(index));
+			if(index < input.length() - 1) {
+				output.append("!");
+			}
+		}
+				
+		return output;
+	}
+	
+	public int cycle(StringBuilder builder, int offset) {
+		
+		if(builder == null || builder.length() == 0) {
 			return 0;
 		}
-
-		// this is a minor optimization that removes leading 
-		// zeroes and replaces them with a multiplier that
-		// accounts for the three probabilities at each 0
-		// removed, one for "nothing", one for "+" and 
-		// one for "-"
-		int multiplier = 1;
-		while(!input.isEmpty() && input.charAt(0) == '0') {
-			input = input.substring(1);
-			multiplier *= 3;
-		}
 		
-		// for some reason "0" is 1, i don't get it...
-		if(input == null || input.isEmpty()) {
-			return 1;
-		}		
-		
-		Queue<String> workingQueue = new LinkedList<>();
-		workingQueue.add(input);
-		
-		int max = input.length();
-		int index = max - 1;
-		while(index > 0) {
-			
-			int limit = workingQueue.size();
-			for(int i = 0; i < limit; i++) {
-				String item = workingQueue.poll();
-				if(item == null) {
-					break;
-				}
-								
-				// add item to back of queue
-				workingQueue.add(item);
-				
-				// calculate
-				int itemLength = item.length();
-				int offset = itemLength - index;				
-				
-				// create sub-parts
-				String part1 = item.substring(0, offset);
-				String part2 = item.substring(offset);
-				
-				// modify for + and -
-				String itemPlus = part1 + "+" + part2;
-				String itemMinus = part1 + "-" + part2;
-				
-				// and add to queue
-				workingQueue.add(itemPlus);
-				workingQueue.add(itemMinus);
-			}
-			
-			index--;
+		// end of the road
+		if(offset >= builder.length()) {
+			// parse
+			long value = this.parse(builder);
+			if(this.isUgly(value)) {
+				return 1;
+			} else {
+				return 0;
+			}			
 		}
 		
 		int sum = 0;
-		while(!workingQueue.isEmpty()) {
-			String item = workingQueue.poll();
-			if(item == null) {
-				break;
-			}
-			if(item == null || item.isEmpty()) {
-				continue;
-			}
-			if(this.isUgly(this.parse(item))) {
-				sum++;
-			}
-		}
 		
-		return sum * multiplier;
+		builder.replace(offset, offset+1, "!");
+		sum += this.cycle(builder, offset+2);
+
+		builder.replace(offset, offset+1, "+");
+		sum += this.cycle(builder, offset+2);
+		
+		builder.replace(offset, offset+1, "-");
+		sum += this.cycle(builder, offset+2);		
+		
+		return sum;
+	
+	}	
+	
+	public long parse(CharSequence input) {
+		return this.parse(0, input);
 	}
 	
-	public long parse(String input) {
-		String reverse = (new StringBuilder(input)).reverse().toString();
-		return this.parse(0, reverse);
-	}
-	
-	public long parse(int index, String input) {
-		if(input == null || input.isEmpty()) {
+	public long parse(int index, CharSequence input) {
+		if(input == null || input.length() == 0) {
 			return 0;
 		}
 		
@@ -165,6 +133,8 @@ public class Main {
 				} 
 					
 				carryValue += parsedValue;
+			} else if('!' == current) {
+				index++;
 			} else {
 				value = current + value;
 				index++;
@@ -178,9 +148,36 @@ public class Main {
 		return carryValue;
 	}
 	
-	public int countUgly(String input) {
-		int count = this.proliferateAndCheck(input);
-		return count;
+	public int countUgly(CharSequence input) {
+		// rip off leading values and create multiplier
+		int multiplier = 1;
+		int index = 0;
+		boolean deleteLeading = false;
+		
+		// count leading zeroes
+		while(index < input.length() - 1 && '0' == input.charAt(index)) {
+			multiplier *= 3;
+			index++;
+			deleteLeading = true;
+		}
+		
+		// create easily manipulated string builder with tokens
+		StringBuilder builder = this.tokenize(input);
+		
+		// delete leading values
+		if(deleteLeading) {
+			builder.replace(0, index*2, "");
+		}
+		
+		// reverse now, because cycling and parsing happen in reverse
+		builder.reverse();
+		
+		// count by cycling values
+		int count = this.cycle(builder, 1);
+		
+		// use small optimization multiplier to calculate
+		// real value
+		return count * multiplier;
 	}
 	
 	public static void main(String[] args) {
@@ -192,8 +189,8 @@ public class Main {
 		String fileName = args[0];
 		
 		Main ugly = new Main();
-		List<String> results = ugly.processFile(fileName);
-		for(String result : results) {
+		List<Integer> results = ugly.processFile(fileName);
+		for(Integer result : results) {
 			System.out.println(result);
 		}
 	}	

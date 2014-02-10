@@ -17,12 +17,11 @@ public class UglyNumbersTest {
 	public void testParse() {
 		Main ugly = new Main();
 		
-		Assert.assertEquals(20, ugly.parse("20"));
-		Assert.assertEquals(20, ugly.parse("0+20"));
-		Assert.assertEquals(-20, ugly.parse("-20"));
-		Assert.assertEquals(-20, ugly.parse("0-20"));
-		
-		Assert.assertEquals(0, ugly.parse("14-016+00000000000002"));
+		Assert.assertEquals(1, ugly.parse(new StringBuilder("01").reverse().toString()));
+		Assert.assertEquals(20, ugly.parse(new StringBuilder("000020").reverse().toString()));
+		Assert.assertEquals(-20, ugly.parse(new StringBuilder("-20").reverse().toString()));
+		Assert.assertEquals(-20, ugly.parse(new StringBuilder("0-20").reverse().toString()));
+		Assert.assertEquals(0, ugly.parse(new StringBuilder("14-016+00000000000002").reverse().toString()));
 	}
 	
 	@Test
@@ -46,7 +45,7 @@ public class UglyNumbersTest {
 		List<String> data = Common.readFile(filePointer);
 		
 		// process file
-		List<String> answers = ugly.processFile(path);
+		List<Integer> answers = ugly.processFile(path);
 
 		// expected
 		URL expectedUrl = Thread.currentThread().getContextClassLoader().getResource("hard/uglynumbers/answers.txt");
@@ -57,8 +56,8 @@ public class UglyNumbersTest {
 		
 		for(int i = 0; i < answers.size(); i++) {
 			String dataItem = data.get(i);
-			String exItem = expected.get(i);
-			String anItem = answers.get(i);
+			Integer exItem = Integer.parseInt(expected.get(i));
+			Integer anItem = answers.get(i);
 			
 			System.out.println("for data:" + dataItem + ", ex:" + exItem + " = an:" + anItem);
 			Assert.assertEquals(exItem, anItem);
